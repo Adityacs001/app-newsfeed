@@ -4,12 +4,37 @@ import { CalendarIcon, RefreshIcon, SearchIcon } from "@heroicons/react/solid";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 
 import { MainWrapper, ContentWrapper, FooterWrapper } from "./styles/wrappers";
+import News, { Source } from "./model/news";
 
 function classNames(...classes: Array<string>) {
   return classes.filter(Boolean).join(" ");
 }
 
 const App: React.FC = () => {
+  const [isLoading, setIsLoading] = React.useState<boolean>();
+  const [newlist, setNewlist] = React.useState<Array<News>>();
+
+  async function fetchdata() {
+    await fetch(
+      "https://newsapi.org/v2/top-headlines?country=us&apiKey=c3462c7d8202468e916b6e7a98f80472"
+    )
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw response;
+      })
+      .then((news) => setNewlist(news?.articles))
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+
+  React.useEffect(() => {
+    setIsLoading(true);
+    fetchdata();
+  }, []);
+
   const user = {
     name: "Aditya Kumar",
     email: "aditya@kumar.com",
@@ -190,8 +215,37 @@ const App: React.FC = () => {
             </>
           )}
         </Popover>
-        <div className="w-full py-6 border-b border-gray-200 sm:max-w-7xl sm:px-36">
-          Full content
+        <div className="w-full px-4 py-6 border-b border-gray-200 sm:max-w-7xl sm:px-36">
+          <div className="flex items-start justify-between w-full mb-2">
+            <h3 className="mb-3 text-2xl font-medium leading-6 text-gray-900">
+              Recent News
+            </h3>
+            <div className="">
+              <button
+                onClick={() => {
+                  setIsLoading(true);
+                  fetchdata();
+                }}
+                type="button"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <RefreshIcon
+                  className="w-5 h-5 mr-2 -ml-1"
+                  aria-hidden="true"
+                />
+                Refresh
+              </button>
+            </div>
+          </div>
+          {isLoading ? (
+            <span className="text-lg font-semibold text-gray-800">
+              Loading...
+            </span>
+          ) : (
+            <span className="text-lg font-semibold text-gray-800">
+              Show List...
+            </span>
+          )}
         </div>
       </ContentWrapper>
       <FooterWrapper>
