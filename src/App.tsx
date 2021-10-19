@@ -23,6 +23,8 @@ const getFormattedDate = (input: string): string => {
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>();
   const [newlist, setNewlist] = React.useState<Array<News>>();
+  const [selectednews, setSelectedNews] = React.useState<News>();
+  const [shownews, setShowNews] = React.useState<boolean>(false);
 
   async function fetchdata() {
     await fetch(
@@ -37,6 +39,7 @@ const App: React.FC = () => {
       .then((news) => setNewlist(news?.articles))
       .finally(() => {
         setIsLoading(false);
+        setShowNews(false);
       });
   }
 
@@ -44,6 +47,10 @@ const App: React.FC = () => {
     setIsLoading(true);
     fetchdata();
   }, []);
+
+  React.useEffect(() => {
+    if (!shownews) setSelectedNews(undefined);
+  }, [shownews]);
 
   const user = {
     name: "Aditya Kumar",
@@ -67,7 +74,7 @@ const App: React.FC = () => {
   ];
 
   return (
-    <MainWrapper className="antialiased bg-gray-50">
+    <MainWrapper className="antialiased sm:overflow-x-hidden bg-gray-50">
       <ContentWrapper>
         <Popover
           as="header"
@@ -225,7 +232,7 @@ const App: React.FC = () => {
             </>
           )}
         </Popover>
-        <div className="w-full px-4 py-6 mx-auto overflow-hidden border-b border-gray-200 sm:max-w-6xl">
+        <div className="px-4 py-6 mx-auto border-b border-gray-200 sm:max-w-6xl">
           <div className="flex items-start justify-between w-full mb-2 ">
             <h3 className="mb-3 text-2xl font-medium leading-6 text-gray-900">
               Recent News
@@ -263,6 +270,10 @@ const App: React.FC = () => {
                 {newlist &&
                   newlist.map((val, index) => (
                     <li
+                      onClick={() => {
+                        setSelectedNews(val);
+                        setShowNews(true);
+                      }}
                       key={index}
                       className="cursor-pointer hover:bg-gray-200 focus:ring-2 focus-within:ring-2 focus-within:ring-indigo-500"
                     >
@@ -297,6 +308,117 @@ const App: React.FC = () => {
             </React.Suspense>
           )}
         </div>
+        <Transition.Root show={shownews} as={React.Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 overflow-hidden"
+            onClose={() => setShowNews(false)}
+          >
+            <div className="absolute inset-0 overflow-hidden">
+              <Transition.Child
+                as={React.Fragment}
+                enter="ease-in-out duration-500"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in-out duration-500"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+              >
+                <Dialog.Overlay className="absolute inset-0 transition-opacity bg-gray-500 bg-opacity-75" />
+              </Transition.Child>
+              <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
+                <Transition.Child
+                  as={React.Fragment}
+                  enter="transform transition ease-in-out duration-500 sm:duration-700"
+                  enterFrom="translate-x-full"
+                  enterTo="translate-x-0"
+                  leave="transform transition ease-in-out duration-500 sm:duration-700"
+                  leaveFrom="translate-x-0"
+                  leaveTo="translate-x-full"
+                >
+                  <div className="relative w-screen max-w-2xl">
+                    {selectednews && (
+                      <div className="flex flex-col h-full overflow-y-scroll bg-white shadow-xl">
+                        <div className="px-4 py-6 bg-indigo-700 sm:px-6">
+                          <div className="flex items-center justify-between">
+                            <Dialog.Title className="text-lg font-medium text-white">
+                              News Details
+                            </Dialog.Title>
+                            <div className="flex items-center ml-3 h-7">
+                              <button
+                                type="button"
+                                className="text-indigo-200 bg-indigo-700 rounded-md hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                                onClick={() => setShowNews(false)}
+                              >
+                                <span className="sr-only">Close panel</span>
+                                <XIcon className="w-6 h-6" aria-hidden="true" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="mt-1">
+                            <p className="text-sm text-indigo-300"></p>
+                          </div>
+                        </div>
+                        <div className="relative flex-1 px-4 pb-6 mt-6 sm:px-6">
+                          <div className="relative py-2 overflow-hidden bg-white">
+                            <div className="relative px-4 sm:px-6 lg:px-8">
+                              <div className="mx-auto text-lg max-w-prose">
+                                <h1>
+                                  <span className="block text-base font-semibold tracking-wide text-center text-indigo-600 uppercase">
+                                    {getFormattedDate(
+                                      selectednews?.publishedAt
+                                    )}
+                                  </span>
+                                  <span className="block mt-2 font-extrabold leading-8 tracking-tight text-center text-gray-900 underline hover:text-indigo-700 sm:text-4xl">
+                                    <a
+                                      href={selectednews?.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {selectednews?.title}
+                                    </a>
+                                  </span>
+                                </h1>
+                                <p className="mt-8 text-xl leading-8 text-gray-500">
+                                  {selectednews?.description}
+                                </p>
+                              </div>
+                              <div className="mx-auto mt-6 prose prose-lg text-gray-500 prose-indigo">
+                                <figure>
+                                  <img
+                                    className="w-full rounded-lg"
+                                    src={`${selectednews?.urlToImage}`}
+                                    alt="News details"
+                                    width={1310}
+                                    height={873}
+                                  />
+                                  <figcaption></figcaption>
+                                </figure>
+                                <p className="py-1">{selectednews?.content}</p>
+                                <p className="py-2">
+                                  {selectednews?.author && (
+                                    <span className="flex">
+                                      {" "}
+                                      <span>By </span>{" "}
+                                      <span className="px-2 text-lg font-semibold text-gray-800">
+                                        {" "}
+                                        {selectednews?.author}
+                                      </span>{" "}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition.Root>
       </ContentWrapper>
       <FooterWrapper>
         <footer className="bg-white">
