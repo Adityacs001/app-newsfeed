@@ -4,11 +4,21 @@ import { CalendarIcon, RefreshIcon, SearchIcon } from "@heroicons/react/solid";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 
 import { MainWrapper, ContentWrapper, FooterWrapper } from "./styles/wrappers";
-import News, { Source } from "./model/news";
+import News from "./model/news";
+import Spinner from "./components/Spinner";
 
-function classNames(...classes: Array<string>) {
+const classNames = (...classes: Array<string>) => {
   return classes.filter(Boolean).join(" ");
-}
+};
+
+const getFormattedDate = (input: string): string => {
+  let formatteddate: string = input;
+  try {
+    formatteddate = input.toString().split("T")[0];
+  } catch {}
+
+  return formatteddate;
+};
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>();
@@ -215,8 +225,8 @@ const App: React.FC = () => {
             </>
           )}
         </Popover>
-        <div className="w-full px-4 py-6 border-b border-gray-200 sm:max-w-7xl sm:px-36">
-          <div className="flex items-start justify-between w-full mb-2">
+        <div className="w-full px-4 py-6 mx-auto overflow-hidden border-b border-gray-200 sm:max-w-6xl">
+          <div className="flex items-start justify-between w-full mb-2 ">
             <h3 className="mb-3 text-2xl font-medium leading-6 text-gray-900">
               Recent News
             </h3>
@@ -239,12 +249,52 @@ const App: React.FC = () => {
           </div>
           {isLoading ? (
             <span className="text-lg font-semibold text-gray-800">
-              Loading...
+              <Spinner />
             </span>
           ) : (
-            <span className="text-lg font-semibold text-gray-800">
-              Show List...
-            </span>
+            <React.Suspense
+              fallback={
+                <span className="text-lg font-semibold text-gray-800">
+                  <Spinner />
+                </span>
+              }
+            >
+              <ul className="bg-white divide-y-2 divide-gray-100 group">
+                {newlist &&
+                  newlist.map((val, index) => (
+                    <li
+                      key={index}
+                      className="cursor-pointer hover:bg-gray-200 focus:ring-2 focus-within:ring-2 focus-within:ring-indigo-500"
+                    >
+                      <div className="flex py-3">
+                        <div className="relative flex-none hidden w-64 sm:block">
+                          <img
+                            src={val?.urlToImage}
+                            alt="some"
+                            className="absolute inset-0 object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="flex-auto p-6">
+                          <div className="flex flex-wrap">
+                            <h1 className="flex-auto text-xl font-semibold">
+                              {val?.title}
+                            </h1>
+                            <div className="flex items-center w-full mt-2 text-sm font-medium text-gray-500">
+                              <CalendarIcon className="w-6 h-6"></CalendarIcon>
+                              <span className="px-2">
+                                {getFormattedDate(val?.publishedAt)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-sm text-gray-500">
+                            {val?.description}
+                          </p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </React.Suspense>
           )}
         </div>
       </ContentWrapper>
@@ -268,7 +318,7 @@ const App: React.FC = () => {
             </nav>
 
             <p className="mt-8 text-base text-center text-gray-400">
-              &copy; 2020 Musala News Feed Evaluation, Inc. All rights reserved.
+              &copy; 2021 Musala News Feed Evaluation, Inc. All rights reserved.
             </p>
           </div>
         </footer>
