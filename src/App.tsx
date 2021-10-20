@@ -1,6 +1,11 @@
 import * as React from "react";
 import { Menu, Popover, Transition, Dialog } from "@headlessui/react";
-import { CalendarIcon, RefreshIcon, SearchIcon } from "@heroicons/react/solid";
+import {
+  CalendarIcon,
+  RefreshIcon,
+  SearchIcon,
+  PlusIcon,
+} from "@heroicons/react/solid";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 
 import { MainWrapper, ContentWrapper, FooterWrapper } from "./styles/wrappers";
@@ -25,10 +30,11 @@ const App: React.FC = () => {
   const [newlist, setNewlist] = React.useState<Array<News>>();
   const [selectednews, setSelectedNews] = React.useState<News>();
   const [shownews, setShowNews] = React.useState<boolean>(false);
+  const [searchterm, setSearchTerm] = React.useState<string>("");
 
-  async function fetchdata() {
+  async function fetchdata(q: string) {
     await fetch(
-      "https://newsapi.org/v2/top-headlines?country=us&apiKey=c3462c7d8202468e916b6e7a98f80472"
+      `https://newsapi.org/v2/top-headlines?country=us&apiKey=c3462c7d8202468e916b6e7a98f80472&q=${q}`
     )
       .then((response) => {
         if (response.ok) {
@@ -45,12 +51,16 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     setIsLoading(true);
-    fetchdata();
+    fetchdata("");
   }, []);
 
   React.useEffect(() => {
     if (!shownews) setSelectedNews(undefined);
   }, [shownews]);
+
+  React.useEffect(() => {
+    if (!!searchterm) fetchdata(searchterm);
+  }, [searchterm]);
 
   const user = {
     name: "Aditya Kumar",
@@ -119,6 +129,7 @@ const App: React.FC = () => {
                             className="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-500 bg-white border border-gray-300 rounded-md focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             placeholder="Search"
                             type="search"
+                            onChange={(e) => setSearchTerm(e?.target?.value)}
                           />
                         </div>
                       </div>
@@ -241,7 +252,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setIsLoading(true);
-                  fetchdata();
+                  fetchdata("");
                 }}
                 type="button"
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -267,7 +278,7 @@ const App: React.FC = () => {
               }
             >
               <ul className="bg-white divide-y-2 divide-gray-100 group">
-                {newlist &&
+                {newlist && newlist.length > 0 ? (
                   newlist.map((val, index) => (
                     <li
                       onClick={() => {
@@ -303,7 +314,32 @@ const App: React.FC = () => {
                         </div>
                       </div>
                     </li>
-                  ))}
+                  ))
+                ) : (
+                  <div className="py-4 text-center">
+                    <svg
+                      className="w-12 h-12 mx-auto text-gray-300"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        vectorEffect="non-scaling-stroke"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">
+                      No news found
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Click to refresh button to reload all.
+                    </p>
+                  </div>
+                )}
               </ul>
             </React.Suspense>
           )}
