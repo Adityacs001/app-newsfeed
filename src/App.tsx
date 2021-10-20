@@ -1,17 +1,12 @@
 import * as React from "react";
 import { Menu, Popover, Transition, Dialog } from "@headlessui/react";
-import {
-  CalendarIcon,
-  RefreshIcon,
-  SearchIcon,
-  PlusIcon,
-} from "@heroicons/react/solid";
-import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
-
+import { CalendarIcon, RefreshIcon, SearchIcon } from "@heroicons/react/solid";
+import { BellIcon, MenuIcon, XIcon, CogIcon } from "@heroicons/react/outline";
 import { MainWrapper, ContentWrapper, FooterWrapper } from "./styles/wrappers";
 import News from "./model/news";
 import Spinner from "./components/Spinner";
-
+import "./localize";
+import { useTranslation } from "react-i18next";
 const classNames = (...classes: Array<string>) => {
   return classes.filter(Boolean).join(" ");
 };
@@ -26,15 +21,18 @@ const getFormattedDate = (input: string): string => {
 };
 
 const App: React.FC = () => {
+  const { t, i18n } = useTranslation();
+
   const [isLoading, setIsLoading] = React.useState<boolean>();
   const [newlist, setNewlist] = React.useState<Array<News>>();
   const [selectednews, setSelectedNews] = React.useState<News>();
   const [shownews, setShowNews] = React.useState<boolean>(false);
   const [searchterm, setSearchTerm] = React.useState<string>("");
 
-  async function fetchdata(q: string) {
+  async function fetchdata(q: string, locale: string) {
+    if (locale === "en") locale = "us";
     await fetch(
-      `https://newsapi.org/v2/top-headlines?country=us&apiKey=c3462c7d8202468e916b6e7a98f80472&q=${q}`
+      `https://newsapi.org/v2/top-headlines?country=${locale}&apiKey=c3462c7d8202468e916b6e7a98f80472&q=${q}`
     )
       .then((response) => {
         if (response.ok) {
@@ -51,16 +49,16 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     setIsLoading(true);
-    fetchdata("");
-  }, []);
+    fetchdata("", i18n.language.toLowerCase());
+  }, [i18n.language]);
 
   React.useEffect(() => {
     if (!shownews) setSelectedNews(undefined);
   }, [shownews]);
 
   React.useEffect(() => {
-    if (!!searchterm) fetchdata(searchterm);
-  }, [searchterm]);
+    if (!!searchterm) fetchdata(searchterm, i18n.language.toLowerCase());
+  }, [searchterm, i18n.language]);
 
   const user = {
     name: "Aditya Kumar",
@@ -149,13 +147,20 @@ const App: React.FC = () => {
                     </Popover.Button>
                   </div>
                   <div className="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4">
-                    <a
-                      href="/"
+                    <button
+                      onClick={(e) =>
+                        i18n.changeLanguage(
+                          i18n.language.toLowerCase() === "en" ? "bg" : "en"
+                        )
+                      }
                       className="flex-shrink-0 p-1 ml-5 text-gray-400 bg-white rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                      <span className="sr-only">View notifications</span>
-                      <BellIcon className="w-6 h-6" aria-hidden="true" />
-                    </a>
+                      <span className="sr-only">Change Language</span>
+                      {/* <CogIcon className="w-6 h-6" aria-hidden="true" /> */}
+                      <span className="p-1 text-sm text-white uppercase bg-indigo-700 rounded-full hover:text-indigo-200">
+                        {i18n.language.toLowerCase() === "en" ? "bg" : "en"}
+                      </span>
+                    </button>
 
                     {/* Profile dropdown */}
                     <Menu as="div" className="relative flex-shrink-0 ml-5">
@@ -246,13 +251,13 @@ const App: React.FC = () => {
         <div className="px-4 py-6 mx-auto border-b border-gray-200 sm:max-w-6xl">
           <div className="flex items-start justify-between w-full mb-2 ">
             <h3 className="mb-3 text-2xl font-medium leading-6 text-gray-900">
-              Recent News
+              {t("recentnewz")}
             </h3>
             <div className="">
               <button
                 onClick={() => {
                   setIsLoading(true);
-                  fetchdata("");
+                  fetchdata("", i18n.language.toLowerCase());
                 }}
                 type="button"
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -261,7 +266,7 @@ const App: React.FC = () => {
                   className="w-5 h-5 mr-2 -ml-1"
                   aria-hidden="true"
                 />
-                Refresh
+                {t("refresh")}
               </button>
             </div>
           </div>
