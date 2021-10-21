@@ -7,14 +7,12 @@ import {
   SearchIcon,
   SunIcon,
 } from "@heroicons/react/solid";
-import { BellIcon, MenuIcon, XIcon, CogIcon } from "@heroicons/react/outline";
+import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { MainWrapper, ContentWrapper, FooterWrapper } from "./styles/wrappers";
 import News from "./model/news";
 import Spinner from "./components/Spinner";
 import "./localize";
 import { useTranslation } from "react-i18next";
-
-import { ThemeProvider } from "styled-components";
 
 const classNames = (...classes: Array<string>) => {
   return classes.filter(Boolean).join(" ");
